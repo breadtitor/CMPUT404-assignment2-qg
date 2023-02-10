@@ -23,39 +23,47 @@ import socket
 import re
 # you may use urllib to encode data appropriately
 import urllib.parse
-
+#no change
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
-
+#no change
 class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
-
+#no change
 class HTTPClient(object):
     #def get_host_port(self,url):
-
+#no change
     def connect(self, host, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
         return None
-
+#need change
     def get_code(self, data):
-        return None
-
+        return data.split()[1]
+       
+        #return None
+#need change
     def get_headers(self,data):
-        return None
-
+        header_end = data.index("\r\n\r\n") + 4
+        return data[:header_end]
+    
+        #return None
+#need change
     def get_body(self, data):
-        return None
+        header_end = data.index("\r\n\r\n") + 4
+        return data[header_end:]
+        #return None
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
-        
+        #no change
     def close(self):
         self.socket.close()
 
     # read everything from the socket
+    #no change
     def recvall(self, sock):
         buffer = bytearray()
         done = False
@@ -66,23 +74,81 @@ class HTTPClient(object):
             else:
                 done = not part
         return buffer.decode('utf-8')
-
+#need change
     def GET(self, url, args=None):
+        parsed_url = urllib.parse.urlparse(url)
         code = 500
         body = ""
-        return HTTPResponse(code, body)
+        host_name = parsed_url.hostname
+        port_num = parsed_url.port
+        scheme = parsed_url.scheme
 
+        if not port_num:
+            if scheme == "http":
+                port_num = 80
+            elif scheme == "https":
+                port_num = 443
+        self.connect(host_name, port_num)
+
+        path = parsed_url.path if parsed_url.path else '/'
+        
+        request = f'GET {path} HTTP/1.1\r\nHost: {host_name}\r\nAccept-Charset: UTF-8\r\nConnection:close\r\n\r\n'
+        self.sendall(request)
+
+        response = self.recvall(self.socket)
+
+        code = int(self.get_code(response))
+        body = self.get_body(response)
+        self.close()
+
+        return HTTPResponse(code, body)
+    
+#need change
+  
     def POST(self, url, args=None):
+        parsed_url = urllib.parse.urlparse(url)
         code = 500
         body = ""
-        return HTTPResponse(code, body)
+        host_name = parsed_url.hostname
+        port_num = parsed_url.port
+        scheme = parsed_url.scheme
 
+        if not port_num:
+            if scheme == "http":
+                port_num = 80
+            elif scheme == "https":
+                port_num = 443
+        self.connect(host_name, port_num)
+
+        path = parsed_url.path if parsed_url.path else '/'
+        request = f'POST {path} HTTP/1.1\r\nHost: {host_name}\r\nAccept-Charset: UTF-8\r\nConnection:close\r\n'
+
+        if not args:
+            addargs =  ''
+        else:
+            addargs = urllib.parse.urlencode(args)
+        # if args:
+        #     request += f'Content-Length: {len(args)}\r\n\r\n{args}'
+        # else:
+        #     request += '\r\n'
+        request = 'POST ' + path + ' HTTP/1.1\r\nHost: ' + host_name + '\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: ' + str(len(addargs)) + '\r\nConnection: close\r\n\r\n' + addargs
+        
+        self.sendall(request)
+
+        response = self.recvall(self.socket)
+        code = int(self.get_code(response))
+        body = self.get_body(response)
+        print(response)
+        self.close()
+
+        return HTTPResponse(code, body)
+#nochange
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
-    
+    #no change
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
