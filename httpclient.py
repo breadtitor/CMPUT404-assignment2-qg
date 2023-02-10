@@ -124,15 +124,22 @@ class HTTPClient(object):
         request = f'POST {path} HTTP/1.1\r\nHost: {host_name}\r\nAccept-Charset: UTF-8\r\nConnection:close\r\n'
 
         if not args:
-            addargs =  ''
+           # addargs =  ''
+
+            request = 'POST ' + path + ' HTTP/1.1\r\nHost: ' + host_name + '\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: ' + str(0) + '\r\nConnection: close\r\n\r\n' + ''
+            print("no args")
+            # print(addargs)
+            # print(addargs)
+            # print(str(len(addargs)))
+            
         else:
             addargs = urllib.parse.urlencode(args)
+            request = 'POST ' + path + ' HTTP/1.1\r\nHost: ' + host_name + '\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: ' + str(len(addargs)) + '\r\nConnection: close\r\n\r\n' + addargs
         # if args:
         #     request += f'Content-Length: {len(args)}\r\n\r\n{args}'
         # else:
         #     request += '\r\n'
-        request = 'POST ' + path + ' HTTP/1.1\r\nHost: ' + host_name + '\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: ' + str(len(addargs)) + '\r\nConnection: close\r\n\r\n' + addargs
-        
+        print(request)        
         self.sendall(request)
 
         response = self.recvall(self.socket)
