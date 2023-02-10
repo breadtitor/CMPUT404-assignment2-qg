@@ -124,13 +124,9 @@ class HTTPClient(object):
         request = f'POST {path} HTTP/1.1\r\nHost: {host_name}\r\nAccept-Charset: UTF-8\r\nConnection:close\r\n'
 
         if not args:
-           # addargs =  ''
-
             request = 'POST ' + path + ' HTTP/1.1\r\nHost: ' + host_name + '\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: ' + str(0) + '\r\nConnection: close\r\n\r\n' + ''
             print("no args")
-            # print(addargs)
-            # print(addargs)
-            # print(str(len(addargs)))
+          
             
         else:
             addargs = urllib.parse.urlencode(args)
